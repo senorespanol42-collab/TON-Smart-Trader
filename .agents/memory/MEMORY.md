@@ -1,0 +1,1 @@
+- [Storm Bot frontend pair format](storm-bot-pair-format.md) — API expects "TON/USDT" (slash), not "TON-USDT" (hyphen); frontend defaultPair must use slash format

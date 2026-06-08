@@ -3,20 +3,44 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Storm Trade Bot API — trading bot for Storm Trade perpetual DEX on TON
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: wallet
+    description: TON wallet management
+  - name: risk
+    description: Risk limits and safety
+  - name: bot
+    description: Bot control and status
+  - name: config
+    description: Bot strategy configuration
+  - name: positions
+    description: Open positions management
+  - name: orders
+    description: Order management
+  - name: trades
+    description: Trade history
+  - name: market
+    description: Market data (price, OHLCV, pairs)
+  - name: analysis
+    description: Price action and SMC analysis
+  - name: metrics
+    description: Performance metrics
+  - name: logs
+    description: Bot activity logs
+  - name: whitepaper
+    description: Algorithm whitepaper
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +48,1155 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Wallet ──────────────────────────────────────────────────────────────
+  /wallet:
+    get:
+      operationId: getWallet
+      tags: [wallet]
+      summary: Get connected wallet info
+      responses:
+        "200":
+          description: Wallet info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletInfo"
+
+  /wallet/connect:
+    post:
+      operationId: connectWallet
+      tags: [wallet]
+      summary: Connect TON wallet via TonConnect payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletConnectInput"
+      responses:
+        "200":
+          description: Connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalletInfo"
+
+  /wallet/disconnect:
+    post:
+      operationId: disconnectWallet
+      tags: [wallet]
+      summary: Disconnect wallet
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  # ── Risk Limits ──────────────────────────────────────────────────────────
+  /risk-limits:
+    get:
+      operationId: getRiskLimits
+      tags: [risk]
+      summary: Get current risk limits
+      responses:
+        "200":
+          description: Risk limits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskLimits"
+    put:
+      operationId: updateRiskLimits
+      tags: [risk]
+      summary: Update risk limits
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskLimitsInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskLimits"
+
+  # ── Bot Control ──────────────────────────────────────────────────────────
+  /bot/status:
+    get:
+      operationId: getBotStatus
+      tags: [bot]
+      summary: Get bot status and runtime info
+      responses:
+        "200":
+          description: Bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/start:
+    post:
+      operationId: startBot
+      tags: [bot]
+      summary: Start the trading bot
+      responses:
+        "200":
+          description: Started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/stop:
+    post:
+      operationId: stopBot
+      tags: [bot]
+      summary: Stop the trading bot
+      responses:
+        "200":
+          description: Stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/pause:
+    post:
+      operationId: pauseBot
+      tags: [bot]
+      summary: Pause the trading bot (keep positions, stop new entries)
+      responses:
+        "200":
+          description: Paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  # ── Strategy Configuration ────────────────────────────────────────────────
+  /config:
+    get:
+      operationId: getConfig
+      tags: [config]
+      summary: Get bot strategy configuration
+      responses:
+        "200":
+          description: Config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotConfig"
+    put:
+      operationId: updateConfig
+      tags: [config]
+      summary: Update bot strategy configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotConfigInput"
+      responses:
+        "200":
+          description: Updated config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotConfig"
+
+  # ── Positions ────────────────────────────────────────────────────────────
+  /positions:
+    get:
+      operationId: getPositions
+      tags: [positions]
+      summary: Get all open positions
+      responses:
+        "200":
+          description: Positions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Position"
+
+  /positions/{id}:
+    get:
+      operationId: getPosition
+      tags: [positions]
+      summary: Get a single position
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Position
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Position"
+
+  /positions/{id}/close:
+    post:
+      operationId: closePosition
+      tags: [positions]
+      summary: Manually close a position
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  # ── Orders ────────────────────────────────────────────────────────────────
+  /orders:
+    get:
+      operationId: getOrders
+      tags: [orders]
+      summary: Get pending orders
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    delete:
+      operationId: cancelOrder
+      tags: [orders]
+      summary: Cancel a pending order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  # ── Trade History ─────────────────────────────────────────────────────────
+  /trades:
+    get:
+      operationId: getTrades
+      tags: [trades]
+      summary: Get closed trade history
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: pair
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Trades list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trade"
+
+  # ── Market Data ──────────────────────────────────────────────────────────
+  /market/pairs:
+    get:
+      operationId: getMarketPairs
+      tags: [market]
+      summary: Get available trading pairs on Storm Trade
+      responses:
+        "200":
+          description: Pairs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradingPair"
+
+  /market/price:
+    get:
+      operationId: getMarketPrice
+      tags: [market]
+      summary: Get current price for a pair
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Price
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PriceData"
+
+  /market/ohlcv:
+    get:
+      operationId: getOhlcv
+      tags: [market]
+      summary: Get OHLCV candle data
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: interval
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [1m, 5m, 15m, 1h, 4h, 1d]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 200
+      responses:
+        "200":
+          description: OHLCV candles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Candle"
+
+  # ── Price Action & SMC Analysis ──────────────────────────────────────────
+  /analysis/levels:
+    get:
+      operationId: getKeyLevels
+      tags: [analysis]
+      summary: Get detected key support/resistance levels for a pair
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: interval
+          in: query
+          schema:
+            type: string
+            default: 1h
+      responses:
+        "200":
+          description: Key levels
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeyLevelsResult"
+
+  /analysis/zones:
+    get:
+      operationId: getSupplyDemandZones
+      tags: [analysis]
+      summary: Get detected supply and demand zones
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: interval
+          in: query
+          schema:
+            type: string
+            default: 1h
+      responses:
+        "200":
+          description: Supply and demand zones
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZonesResult"
+
+  /analysis/structure:
+    get:
+      operationId: getMarketStructure
+      tags: [analysis]
+      summary: Get market structure (HH/HL/LL/LH, BOS, CHoCH) for SMC
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: interval
+          in: query
+          schema:
+            type: string
+            default: 1h
+      responses:
+        "200":
+          description: Market structure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketStructureResult"
+
+  /analysis/signal:
+    get:
+      operationId: getCurrentSignal
+      tags: [analysis]
+      summary: Get current algorithm signal and reasoning
+      parameters:
+        - name: pair
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current signal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingSignal"
+
+  # ── Performance Metrics ──────────────────────────────────────────────────
+  /metrics/summary:
+    get:
+      operationId: getMetricsSummary
+      tags: [metrics]
+      summary: Get high-level performance summary
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsSummary"
+
+  /metrics/performance:
+    get:
+      operationId: getPerformance
+      tags: [metrics]
+      summary: Get detailed performance breakdown (equity curve, drawdown, win rate)
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1d, 7d, 30d, all]
+            default: 30d
+      responses:
+        "200":
+          description: Performance data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceData"
+
+  # ── Activity Logs ─────────────────────────────────────────────────────────
+  /logs:
+    get:
+      operationId: getLogs
+      tags: [logs]
+      summary: Get bot activity logs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: level
+          in: query
+          schema:
+            type: ["string", "null"]
+            enum: [info, warn, error, debug, null]
+      responses:
+        "200":
+          description: Logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LogEntry"
+
+  # ── Whitepaper ───────────────────────────────────────────────────────────
+  /whitepaper:
+    get:
+      operationId: getWhitepaper
+      tags: [whitepaper]
+      summary: Get the algorithm whitepaper in structured form
+      responses:
+        "200":
+          description: Whitepaper
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Whitepaper"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    ActionResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    # ── Wallet ──────────────────────────────────────────────────────────────
+    WalletInfo:
+      type: object
+      required: [connected]
+      properties:
+        connected:
+          type: boolean
+        address:
+          type: ["string", "null"]
+        balance:
+          type: ["number", "null"]
+        balanceUsd:
+          type: ["number", "null"]
+        network:
+          type: ["string", "null"]
+
+    WalletConnectInput:
+      type: object
+      required: [address]
+      properties:
+        address:
+          type: string
+        proof:
+          type: ["string", "null"]
+
+    # ── Risk ────────────────────────────────────────────────────────────────
+    RiskLimits:
+      type: object
+      required: [maxDailyLossUsd, maxPositionSizeUsd, maxOpenPositions, maxLeverage, stopLossPercent, takeProfitPercent, maxDrawdownPercent, enabled]
+      properties:
+        maxDailyLossUsd:
+          type: number
+          description: Maximum daily loss in USD before bot auto-stops
+        maxPositionSizeUsd:
+          type: number
+          description: Maximum size of a single position in USD
+        maxOpenPositions:
+          type: integer
+          description: Maximum number of simultaneously open positions
+        maxLeverage:
+          type: number
+          description: Maximum leverage multiplier allowed
+        stopLossPercent:
+          type: number
+          description: Default stop loss as percent of entry price
+        takeProfitPercent:
+          type: number
+          description: Default take profit as percent of entry price
+        maxDrawdownPercent:
+          type: number
+          description: Max portfolio drawdown before bot pauses
+        enabled:
+          type: boolean
+          description: Whether hard limits are enforced
+
+    RiskLimitsInput:
+      type: object
+      properties:
+        maxDailyLossUsd:
+          type: number
+        maxPositionSizeUsd:
+          type: number
+        maxOpenPositions:
+          type: integer
+        maxLeverage:
+          type: number
+        stopLossPercent:
+          type: number
+        takeProfitPercent:
+          type: number
+        maxDrawdownPercent:
+          type: number
+        enabled:
+          type: boolean
+
+    # ── Bot ─────────────────────────────────────────────────────────────────
+    BotStatus:
+      type: object
+      required: [state, uptime, activePair, totalTrades, openPositions, dailyPnlUsd]
+      properties:
+        state:
+          type: string
+          enum: [running, stopped, paused, error]
+        uptime:
+          type: ["integer", "null"]
+          description: Seconds since last start
+        activePair:
+          type: ["string", "null"]
+        totalTrades:
+          type: integer
+        openPositions:
+          type: integer
+        dailyPnlUsd:
+          type: number
+        errorMessage:
+          type: ["string", "null"]
+        lastSignalAt:
+          type: ["string", "null"]
+
+    # ── Config ──────────────────────────────────────────────────────────────
+    BotConfig:
+      type: object
+      required: [pair, interval, strategy, entryFilters, exitRules, smcEnabled, priceActionEnabled, volumeFilter, sessionFilter]
+      properties:
+        pair:
+          type: string
+        interval:
+          type: string
+          enum: [1m, 5m, 15m, 1h, 4h, 1d]
+        strategy:
+          type: string
+          enum: [conservative, moderate, aggressive]
+        entryFilters:
+          $ref: "#/components/schemas/EntryFilters"
+        exitRules:
+          $ref: "#/components/schemas/ExitRules"
+        smcEnabled:
+          type: boolean
+          description: Enable Smart Money Concepts layer
+        priceActionEnabled:
+          type: boolean
+          description: Enable Price Action layer
+        volumeFilter:
+          type: boolean
+          description: Require volume confirmation on entries
+        sessionFilter:
+          type: boolean
+          description: Only trade during high-liquidity sessions
+
+    EntryFilters:
+      type: object
+      required: [minConfluenceScore, requireBos, requireChoch, requireFvg, requireOrderBlock, minRiskReward]
+      properties:
+        minConfluenceScore:
+          type: number
+          description: Minimum confluence score (0-100) required to enter
+        requireBos:
+          type: boolean
+          description: Require Break of Structure confirmation
+        requireChoch:
+          type: boolean
+          description: Require Change of Character confirmation
+        requireFvg:
+          type: boolean
+          description: Require Fair Value Gap alignment
+        requireOrderBlock:
+          type: boolean
+          description: Require price at valid order block
+        minRiskReward:
+          type: number
+          description: Minimum risk-reward ratio for entry
+
+    ExitRules:
+      type: object
+      required: [trailingStop, partialTakeProfit, trailingStopActivationPercent, partialTakeProfitPercent]
+      properties:
+        trailingStop:
+          type: boolean
+        partialTakeProfit:
+          type: boolean
+          description: Take 50% profit at first TP level
+        trailingStopActivationPercent:
+          type: number
+        partialTakeProfitPercent:
+          type: number
+
+    BotConfigInput:
+      type: object
+      properties:
+        pair:
+          type: string
+        interval:
+          type: string
+        strategy:
+          type: string
+        entryFilters:
+          $ref: "#/components/schemas/EntryFilters"
+        exitRules:
+          $ref: "#/components/schemas/ExitRules"
+        smcEnabled:
+          type: boolean
+        priceActionEnabled:
+          type: boolean
+        volumeFilter:
+          type: boolean
+        sessionFilter:
+          type: boolean
+
+    # ── Positions ───────────────────────────────────────────────────────────
+    Position:
+      type: object
+      required: [id, pair, side, entryPrice, currentPrice, size, sizeUsd, leverage, unrealizedPnlUsd, unrealizedPnlPercent, stopLoss, takeProfit, openedAt, entryReason]
+      properties:
+        id:
+          type: string
+        pair:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        entryPrice:
+          type: number
+        currentPrice:
+          type: number
+        size:
+          type: number
+        sizeUsd:
+          type: number
+        leverage:
+          type: number
+        unrealizedPnlUsd:
+          type: number
+        unrealizedPnlPercent:
+          type: number
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        openedAt:
+          type: string
+        entryReason:
+          type: string
+          description: Human-readable reason the algorithm entered
+
+    # ── Orders ──────────────────────────────────────────────────────────────
+    Order:
+      type: object
+      required: [id, pair, side, type, price, size, sizeUsd, createdAt, status]
+      properties:
+        id:
+          type: string
+        pair:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        type:
+          type: string
+          enum: [limit, market, stop]
+        price:
+          type: number
+        size:
+          type: number
+        sizeUsd:
+          type: number
+        createdAt:
+          type: string
+        status:
+          type: string
+          enum: [pending, filled, cancelled, expired]
+
+    # ── Trade History ────────────────────────────────────────────────────────
+    Trade:
+      type: object
+      required: [id, pair, side, entryPrice, exitPrice, size, sizeUsd, leverage, realizedPnlUsd, realizedPnlPercent, openedAt, closedAt, exitReason, confluenceScore]
+      properties:
+        id:
+          type: string
+        pair:
+          type: string
+        side:
+          type: string
+          enum: [long, short]
+        entryPrice:
+          type: number
+        exitPrice:
+          type: number
+        size:
+          type: number
+        sizeUsd:
+          type: number
+        leverage:
+          type: number
+        realizedPnlUsd:
+          type: number
+        realizedPnlPercent:
+          type: number
+        openedAt:
+          type: string
+        closedAt:
+          type: string
+        exitReason:
+          type: string
+          enum: [take_profit, stop_loss, trailing_stop, manual, risk_limit]
+        confluenceScore:
+          type: number
+          description: Algorithm confidence score at entry (0-100)
+
+    # ── Market ──────────────────────────────────────────────────────────────
+    TradingPair:
+      type: object
+      required: [symbol, baseAsset, quoteAsset, maxLeverage, minSize]
+      properties:
+        symbol:
+          type: string
+        baseAsset:
+          type: string
+        quoteAsset:
+          type: string
+        maxLeverage:
+          type: number
+        minSize:
+          type: number
+
+    PriceData:
+      type: object
+      required: [pair, price, bid, ask, change24h, volume24h, timestamp]
+      properties:
+        pair:
+          type: string
+        price:
+          type: number
+        bid:
+          type: number
+        ask:
+          type: number
+        change24h:
+          type: number
+        volume24h:
+          type: number
+        timestamp:
+          type: string
+
+    Candle:
+      type: object
+      required: [timestamp, open, high, low, close, volume]
+      properties:
+        timestamp:
+          type: string
+        open:
+          type: number
+        high:
+          type: number
+        low:
+          type: number
+        close:
+          type: number
+        volume:
+          type: number
+
+    # ── Analysis ─────────────────────────────────────────────────────────────
+    KeyLevel:
+      type: object
+      required: [price, type, strength, touchCount, lastTestedAt]
+      properties:
+        price:
+          type: number
+        type:
+          type: string
+          enum: [support, resistance, pivot]
+        strength:
+          type: number
+          description: Level strength score 0-100
+        touchCount:
+          type: integer
+        lastTestedAt:
+          type: string
+
+    KeyLevelsResult:
+      type: object
+      required: [pair, interval, levels, generatedAt]
+      properties:
+        pair:
+          type: string
+        interval:
+          type: string
+        levels:
+          type: array
+          items:
+            $ref: "#/components/schemas/KeyLevel"
+        generatedAt:
+          type: string
+
+    Zone:
+      type: object
+      required: [id, type, priceHigh, priceLow, strength, tested, mitigated, createdAt]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [supply, demand]
+        priceHigh:
+          type: number
+        priceLow:
+          type: number
+        strength:
+          type: number
+        tested:
+          type: boolean
+        mitigated:
+          type: boolean
+        createdAt:
+          type: string
+
+    ZonesResult:
+      type: object
+      required: [pair, interval, zones, generatedAt]
+      properties:
+        pair:
+          type: string
+        interval:
+          type: string
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Zone"
+        generatedAt:
+          type: string
+
+    StructurePoint:
+      type: object
+      required: [type, price, timestamp]
+      properties:
+        type:
+          type: string
+          enum: [HH, HL, LH, LL, BOS, CHOCH, EQUAL_HIGH, EQUAL_LOW]
+        price:
+          type: number
+        timestamp:
+          type: string
+
+    MarketStructureResult:
+      type: object
+      required: [pair, interval, trend, points, internalTrend, generatedAt]
+      properties:
+        pair:
+          type: string
+        interval:
+          type: string
+        trend:
+          type: string
+          enum: [bullish, bearish, ranging]
+        internalTrend:
+          type: string
+          enum: [bullish, bearish, ranging]
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/StructurePoint"
+        generatedAt:
+          type: string
+
+    TradingSignal:
+      type: object
+      required: [pair, signal, confluenceScore, reasoning, keyFactors, suggestedEntry, suggestedStopLoss, suggestedTakeProfit, riskReward, generatedAt]
+      properties:
+        pair:
+          type: string
+        signal:
+          type: string
+          enum: [strong_long, long, neutral, short, strong_short]
+        confluenceScore:
+          type: number
+        reasoning:
+          type: string
+        keyFactors:
+          type: array
+          items:
+            type: string
+        suggestedEntry:
+          type: ["number", "null"]
+        suggestedStopLoss:
+          type: ["number", "null"]
+        suggestedTakeProfit:
+          type: ["number", "null"]
+        riskReward:
+          type: ["number", "null"]
+        generatedAt:
+          type: string
+
+    # ── Metrics ──────────────────────────────────────────────────────────────
+    MetricsSummary:
+      type: object
+      required: [totalPnlUsd, totalPnlPercent, winRate, totalTrades, winningTrades, losingTrades, bestTradeUsd, worstTradeUsd, avgWinUsd, avgLossUsd, profitFactor, maxDrawdownPercent, sharpeRatio, avgHoldingHours]
+      properties:
+        totalPnlUsd:
+          type: number
+        totalPnlPercent:
+          type: number
+        winRate:
+          type: number
+        totalTrades:
+          type: integer
+        winningTrades:
+          type: integer
+        losingTrades:
+          type: integer
+        bestTradeUsd:
+          type: number
+        worstTradeUsd:
+          type: number
+        avgWinUsd:
+          type: number
+        avgLossUsd:
+          type: number
+        profitFactor:
+          type: number
+        maxDrawdownPercent:
+          type: number
+        sharpeRatio:
+          type: number
+        avgHoldingHours:
+          type: number
+
+    EquityPoint:
+      type: object
+      required: [timestamp, equityUsd, drawdownPercent]
+      properties:
+        timestamp:
+          type: string
+        equityUsd:
+          type: number
+        drawdownPercent:
+          type: number
+
+    PerformanceData:
+      type: object
+      required: [period, equityCurve, pnlByDay, winRateByPair]
+      properties:
+        period:
+          type: string
+        equityCurve:
+          type: array
+          items:
+            $ref: "#/components/schemas/EquityPoint"
+        pnlByDay:
+          type: array
+          items:
+            $ref: "#/components/schemas/DailyPnl"
+        winRateByPair:
+          type: array
+          items:
+            $ref: "#/components/schemas/PairStats"
+
+    DailyPnl:
+      type: object
+      required: [date, pnlUsd, trades]
+      properties:
+        date:
+          type: string
+        pnlUsd:
+          type: number
+        trades:
+          type: integer
+
+    PairStats:
+      type: object
+      required: [pair, winRate, trades, pnlUsd]
+      properties:
+        pair:
+          type: string
+        winRate:
+          type: number
+        trades:
+          type: integer
+        pnlUsd:
+          type: number
+
+    # ── Logs ─────────────────────────────────────────────────────────────────
+    LogEntry:
+      type: object
+      required: [id, timestamp, level, message, category]
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+        level:
+          type: string
+          enum: [info, warn, error, debug]
+        message:
+          type: string
+        category:
+          type: string
+          enum: [signal, order, position, risk, system, market]
+        metadata:
+          type: ["object", "null"]
+          additionalProperties: true
+
+    # ── Whitepaper ────────────────────────────────────────────────────────────
+    WhitepaperSection:
+      type: object
+      required: [id, title, content, subsections]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        subsections:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhitepaperSubsection"
+
+    WhitepaperSubsection:
+      type: object
+      required: [id, title, content]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+
+    Whitepaper:
+      type: object
+      required: [title, version, abstract, sections, lastUpdated]
+      properties:
+        title:
+          type: string
+        version:
+          type: string
+        abstract:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/WhitepaperSection"
+        lastUpdated:
+          type: string
