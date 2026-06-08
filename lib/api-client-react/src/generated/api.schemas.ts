@@ -88,6 +88,13 @@ export interface BotStatus {
   errorMessage?: string | null;
   /** @nullable */
   lastSignalAt?: string | null;
+  /** True when running in paper-trading simulation mode */
+  theoreticalMode: boolean;
+  /**
+     * Virtual balance in USD (starts at 1000, null when not in theoretical mode)
+     * @nullable
+     */
+  theoreticalBalance?: number | null;
 }
 
 export type BotConfigInterval = typeof BotConfigInterval[keyof typeof BotConfigInterval];
@@ -186,6 +193,10 @@ export interface Position {
   openedAt: string;
   /** Human-readable reason the algorithm entered */
   entryReason: string;
+  /** @nullable */
+  txHash?: string | null;
+  /** True if this is a paper-trading simulation position */
+  isTheoretical?: boolean;
 }
 
 export type OrderSide = typeof OrderSide[keyof typeof OrderSide];

@@ -23,4 +23,11 @@ export interface BotStatus {
   errorMessage?: string | null;
   /** @nullable */
   lastSignalAt?: string | null;
+  /** True when running in paper-trading simulation mode */
+  theoreticalMode: boolean;
+  /**
+     * Virtual balance in USD (starts at 1000, null when not in theoretical mode)
+     * @nullable
+     */
+  theoreticalBalance?: number | null;
 }

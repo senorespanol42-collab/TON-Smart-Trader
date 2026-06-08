@@ -39,6 +39,8 @@ export const botStateTable = pgTable("bot_state", {
   totalTrades: integer("total_trades").notNull().default(0),
   errorMessage: text("error_message"),
   lastSignalAt: timestamp("last_signal_at"),
+  theoreticalMode: boolean("theoretical_mode").notNull().default(false),
+  theoreticalBalance: numeric("theoretical_balance", { precision: 20, scale: 4 }),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
@@ -90,6 +92,7 @@ export const positionsTable = pgTable("positions", {
   openedAt: timestamp("opened_at").notNull().defaultNow(),
   entryReason: text("entry_reason").notNull().default(""),
   txHash: text("tx_hash"),
+  isTheoretical: boolean("is_theoretical").notNull().default(false),
 });
 
 export type Position = typeof positionsTable.$inferSelect;
@@ -121,11 +124,14 @@ export const tradesTable = pgTable("trades", {
   leverage: numeric("leverage", { precision: 6, scale: 2 }).notNull(),
   realizedPnlUsd: numeric("realized_pnl_usd", { precision: 20, scale: 4 }).notNull(),
   realizedPnlPercent: numeric("realized_pnl_percent", { precision: 10, scale: 4 }).notNull(),
+  openFeeUsd: numeric("open_fee_usd", { precision: 20, scale: 4 }).notNull().default("0"),
+  closeFeeUsd: numeric("close_fee_usd", { precision: 20, scale: 4 }).notNull().default("0"),
   openedAt: timestamp("opened_at").notNull(),
   closedAt: timestamp("closed_at").notNull().defaultNow(),
   exitReason: text("exit_reason").notNull().default("manual"),
   confluenceScore: numeric("confluence_score", { precision: 6, scale: 2 }).notNull().default("0"),
   txHash: text("tx_hash"),
+  isTheoretical: boolean("is_theoretical").notNull().default(false),
 });
 
 export type Trade = typeof tradesTable.$inferSelect;

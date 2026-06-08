@@ -796,6 +796,146 @@ export const usePauseBot = <TError = ErrorType<unknown>,
       return useMutation(getPauseBotMutationOptions(options));
     }
 
+export const getStartTheoreticalBotUrl = () => {
+
+
+
+
+  return `/api/bot/theoretical/start`
+}
+
+/**
+ * @summary Start theoretical (paper trading) mode with $1000 virtual balance
+ */
+export const startTheoreticalBot = async ( options?: RequestInit): Promise<BotStatus> => {
+
+  return customFetch<BotStatus>(getStartTheoreticalBotUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStartTheoreticalBotMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startTheoreticalBot>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startTheoreticalBot>>, TError,void, TContext> => {
+
+const mutationKey = ['startTheoreticalBot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startTheoreticalBot>>, void> = () => {
+
+
+          return  startTheoreticalBot(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartTheoreticalBotMutationResult = NonNullable<Awaited<ReturnType<typeof startTheoreticalBot>>>
+
+    export type StartTheoreticalBotMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Start theoretical (paper trading) mode with $1000 virtual balance
+ */
+export const useStartTheoreticalBot = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startTheoreticalBot>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startTheoreticalBot>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStartTheoreticalBotMutationOptions(options));
+    }
+
+export const getStopTheoreticalBotUrl = () => {
+
+
+
+
+  return `/api/bot/theoretical/stop`
+}
+
+/**
+ * @summary Stop theoretical mode
+ */
+export const stopTheoreticalBot = async ( options?: RequestInit): Promise<BotStatus> => {
+
+  return customFetch<BotStatus>(getStopTheoreticalBotUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStopTheoreticalBotMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopTheoreticalBot>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopTheoreticalBot>>, TError,void, TContext> => {
+
+const mutationKey = ['stopTheoreticalBot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopTheoreticalBot>>, void> = () => {
+
+
+          return  stopTheoreticalBot(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StopTheoreticalBotMutationResult = NonNullable<Awaited<ReturnType<typeof stopTheoreticalBot>>>
+
+    export type StopTheoreticalBotMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Stop theoretical mode
+ */
+export const useStopTheoreticalBot = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopTheoreticalBot>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof stopTheoreticalBot>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStopTheoreticalBotMutationOptions(options));
+    }
+
 export const getGetConfigUrl = () => {
 
 

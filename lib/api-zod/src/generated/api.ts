@@ -106,7 +106,9 @@ export const GetBotStatusResponse = zod.object({
   "openPositions": zod.number(),
   "dailyPnlUsd": zod.number(),
   "errorMessage": zod.string().nullish(),
-  "lastSignalAt": zod.string().nullish()
+  "lastSignalAt": zod.string().nullish(),
+  "theoreticalMode": zod.boolean().describe('True when running in paper-trading simulation mode'),
+  "theoreticalBalance": zod.number().nullish().describe('Virtual balance in USD (starts at 1000, null when not in theoretical mode)')
 })
 
 
@@ -121,7 +123,9 @@ export const StartBotResponse = zod.object({
   "openPositions": zod.number(),
   "dailyPnlUsd": zod.number(),
   "errorMessage": zod.string().nullish(),
-  "lastSignalAt": zod.string().nullish()
+  "lastSignalAt": zod.string().nullish(),
+  "theoreticalMode": zod.boolean().describe('True when running in paper-trading simulation mode'),
+  "theoreticalBalance": zod.number().nullish().describe('Virtual balance in USD (starts at 1000, null when not in theoretical mode)')
 })
 
 
@@ -136,7 +140,9 @@ export const StopBotResponse = zod.object({
   "openPositions": zod.number(),
   "dailyPnlUsd": zod.number(),
   "errorMessage": zod.string().nullish(),
-  "lastSignalAt": zod.string().nullish()
+  "lastSignalAt": zod.string().nullish(),
+  "theoreticalMode": zod.boolean().describe('True when running in paper-trading simulation mode'),
+  "theoreticalBalance": zod.number().nullish().describe('Virtual balance in USD (starts at 1000, null when not in theoretical mode)')
 })
 
 
@@ -151,7 +157,43 @@ export const PauseBotResponse = zod.object({
   "openPositions": zod.number(),
   "dailyPnlUsd": zod.number(),
   "errorMessage": zod.string().nullish(),
-  "lastSignalAt": zod.string().nullish()
+  "lastSignalAt": zod.string().nullish(),
+  "theoreticalMode": zod.boolean().describe('True when running in paper-trading simulation mode'),
+  "theoreticalBalance": zod.number().nullish().describe('Virtual balance in USD (starts at 1000, null when not in theoretical mode)')
+})
+
+
+/**
+ * @summary Start theoretical (paper trading) mode with $1000 virtual balance
+ */
+export const StartTheoreticalBotResponse = zod.object({
+  "state": zod.enum(['running', 'stopped', 'paused', 'error']),
+  "uptime": zod.number().nullable().describe('Seconds since last start'),
+  "activePair": zod.string().nullable(),
+  "totalTrades": zod.number(),
+  "openPositions": zod.number(),
+  "dailyPnlUsd": zod.number(),
+  "errorMessage": zod.string().nullish(),
+  "lastSignalAt": zod.string().nullish(),
+  "theoreticalMode": zod.boolean().describe('True when running in paper-trading simulation mode'),
+  "theoreticalBalance": zod.number().nullish().describe('Virtual balance in USD (starts at 1000, null when not in theoretical mode)')
+})
+
+
+/**
+ * @summary Stop theoretical mode
+ */
+export const StopTheoreticalBotResponse = zod.object({
+  "state": zod.enum(['running', 'stopped', 'paused', 'error']),
+  "uptime": zod.number().nullable().describe('Seconds since last start'),
+  "activePair": zod.string().nullable(),
+  "totalTrades": zod.number(),
+  "openPositions": zod.number(),
+  "dailyPnlUsd": zod.number(),
+  "errorMessage": zod.string().nullish(),
+  "lastSignalAt": zod.string().nullish(),
+  "theoreticalMode": zod.boolean().describe('True when running in paper-trading simulation mode'),
+  "theoreticalBalance": zod.number().nullish().describe('Virtual balance in USD (starts at 1000, null when not in theoretical mode)')
 })
 
 
@@ -252,7 +294,9 @@ export const GetPositionsResponseItem = zod.object({
   "stopLoss": zod.number(),
   "takeProfit": zod.number(),
   "openedAt": zod.string(),
-  "entryReason": zod.string().describe('Human-readable reason the algorithm entered')
+  "entryReason": zod.string().describe('Human-readable reason the algorithm entered'),
+  "txHash": zod.string().nullish(),
+  "isTheoretical": zod.boolean().optional().describe('True if this is a paper-trading simulation position')
 })
 export const GetPositionsResponse = zod.array(GetPositionsResponseItem)
 
@@ -278,7 +322,9 @@ export const GetPositionResponse = zod.object({
   "stopLoss": zod.number(),
   "takeProfit": zod.number(),
   "openedAt": zod.string(),
-  "entryReason": zod.string().describe('Human-readable reason the algorithm entered')
+  "entryReason": zod.string().describe('Human-readable reason the algorithm entered'),
+  "txHash": zod.string().nullish(),
+  "isTheoretical": zod.boolean().optional().describe('True if this is a paper-trading simulation position')
 })
 
 

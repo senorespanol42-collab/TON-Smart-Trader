@@ -179,6 +179,32 @@ paths:
               schema:
                 $ref: "#/components/schemas/BotStatus"
 
+  /bot/theoretical/start:
+    post:
+      operationId: startTheoreticalBot
+      tags: [bot]
+      summary: Start theoretical (paper trading) mode with $1000 virtual balance
+      responses:
+        "200":
+          description: Theoretical mode started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/theoretical/stop:
+    post:
+      operationId: stopTheoreticalBot
+      tags: [bot]
+      summary: Stop theoretical mode
+      responses:
+        "200":
+          description: Theoretical mode stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
   # ── Strategy Configuration ────────────────────────────────────────────────
   /config:
     get:
@@ -655,7 +681,7 @@ components:
     # ── Bot ─────────────────────────────────────────────────────────────────
     BotStatus:
       type: object
-      required: [state, uptime, activePair, totalTrades, openPositions, dailyPnlUsd]
+      required: [state, uptime, activePair, totalTrades, openPositions, dailyPnlUsd, theoreticalMode]
       properties:
         state:
           type: string
@@ -675,6 +701,12 @@ components:
           type: ["string", "null"]
         lastSignalAt:
           type: ["string", "null"]
+        theoreticalMode:
+          type: boolean
+          description: True when running in paper-trading simulation mode
+        theoreticalBalance:
+          type: ["number", "null"]
+          description: Virtual balance in USD (starts at 1000, null when not in theoretical mode)
 
     # ── Config ──────────────────────────────────────────────────────────────
     BotConfig:
@@ -800,6 +832,11 @@ components:
         entryReason:
           type: string
           description: Human-readable reason the algorithm entered
+        txHash:
+          type: ["string", "null"]
+        isTheoretical:
+          type: boolean
+          description: True if this is a paper-trading simulation position
 
     # ── Orders ──────────────────────────────────────────────────────────────
     Order:

@@ -1,1 +1,2 @@
 - [Storm Bot frontend pair format](storm-bot-pair-format.md) — API expects "TON/USDT" (slash), not "TON-USDT" (hyphen); frontend defaultPair must use slash format
+- [Theoretical Mode implementation](theoretical-mode.md) — paper trading with $1k virtual balance; exact Storm Trade fee math; no wallet required; DB columns added

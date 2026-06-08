@@ -23,4 +23,8 @@ export interface Position {
   openedAt: string;
   /** Human-readable reason the algorithm entered */
   entryReason: string;
+  /** @nullable */
+  txHash?: string | null;
+  /** True if this is a paper-trading simulation position */
+  isTheoretical?: boolean;
 }
