@@ -4,75 +4,75 @@ import { analyzeKeyLevels, analyzeSupplyDemandZones } from "../engine/priceActio
 import { analyzeMarketStructure } from "../engine/smc.js";
 import { generateSignal } from "../engine/signals.js";
 import { db, botConfigTable } from "@workspace/db";
+import type { Request, Response } from "express";
 
 const router = Router();
 
-function validatePair(pair: string | undefined, res: Parameters<Parameters<typeof Router>[0]>[1]): boolean {
+function pairNotFound(pair: string | undefined, res: Response): boolean {
   if (!pair) {
     res.status(400).json({ error: "pair is required" });
-    return false;
+    return true;
   }
   const valid = STORM_PAIRS.find((p) => p.symbol === pair);
   if (!valid) {
     res.status(404).json({ error: "Unknown pair" });
-    return false;
+    return true;
   }
-  return true;
+  return false;
 }
 
-router.get("/analysis/levels", (req, res) => {
+router.get("/analysis/levels", async (req: Request, res: Response) => {
   const pair = req.query.pair as string;
   const interval = (req.query.interval as string) || "1h";
-  if (!validatePair(pair, res)) return;
+  if (pairNotFound(pair, res)) return;
 
-  const candles = generateOhlcv(pair, interval, 300);
-  const levels = analyzeKeyLevels(candles);
-
-  res.json({
-    pair,
-    interval,
-    levels,
-    generatedAt: new Date().toISOString(),
-  });
+  try {
+    const candles = await generateOhlcv(pair, interval, 300);
+    const levels = analyzeKeyLevels(candles);
+    res.json({ pair, interval, levels, generatedAt: new Date().toISOString() });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-router.get("/analysis/zones", (req, res) => {
+router.get("/analysis/zones", async (req: Request, res: Response) => {
   const pair = req.query.pair as string;
   const interval = (req.query.interval as string) || "1h";
-  if (!validatePair(pair, res)) return;
+  if (pairNotFound(pair, res)) return;
 
-  const candles = generateOhlcv(pair, interval, 300);
-  const zones = analyzeSupplyDemandZones(candles);
-
-  res.json({
-    pair,
-    interval,
-    zones,
-    generatedAt: new Date().toISOString(),
-  });
+  try {
+    const candles = await generateOhlcv(pair, interval, 300);
+    const zones = analyzeSupplyDemandZones(candles);
+    res.json({ pair, interval, zones, generatedAt: new Date().toISOString() });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-router.get("/analysis/structure", (req, res) => {
+router.get("/analysis/structure", async (req: Request, res: Response) => {
   const pair = req.query.pair as string;
   const interval = (req.query.interval as string) || "1h";
-  if (!validatePair(pair, res)) return;
+  if (pairNotFound(pair, res)) return;
 
-  const candles = generateOhlcv(pair, interval, 300);
-  const structure = analyzeMarketStructure(candles);
-
-  res.json({
-    pair,
-    interval,
-    trend: structure.trend,
-    internalTrend: structure.internalTrend,
-    points: structure.points.slice(-50),
-    generatedAt: new Date().toISOString(),
-  });
+  try {
+    const candles = await generateOhlcv(pair, interval, 300);
+    const structure = analyzeMarketStructure(candles);
+    res.json({
+      pair,
+      interval,
+      trend: structure.trend,
+      internalTrend: structure.internalTrend,
+      points: structure.points.slice(-50),
+      generatedAt: new Date().toISOString(),
+    });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
-router.get("/analysis/signal", async (req, res) => {
+router.get("/analysis/signal", async (req: Request, res: Response) => {
   const pair = req.query.pair as string;
-  if (!validatePair(pair, res)) return;
+  if (pairNotFound(pair, res)) return;
 
   try {
     const configRows = await db.select().from(botConfigTable).limit(1);
@@ -80,7 +80,7 @@ router.get("/analysis/signal", async (req, res) => {
     const filters = config?.entryFilters as Record<string, unknown> | null;
 
     const interval = config?.interval || "1h";
-    const candles = generateOhlcv(pair, interval, 300);
+    const candles = await generateOhlcv(pair, interval, 300);
 
     const entryFilters = filters
       ? {
@@ -95,7 +95,7 @@ router.get("/analysis/signal", async (req, res) => {
 
     const signal = generateSignal(pair, candles, entryFilters);
     res.json(signal);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Internal server error" });
   }
 });

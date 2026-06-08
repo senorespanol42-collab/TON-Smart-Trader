@@ -89,6 +89,7 @@ export const positionsTable = pgTable("positions", {
   takeProfit: numeric("take_profit", { precision: 20, scale: 8 }).notNull(),
   openedAt: timestamp("opened_at").notNull().defaultNow(),
   entryReason: text("entry_reason").notNull().default(""),
+  txHash: text("tx_hash"),
 });
 
 export type Position = typeof positionsTable.$inferSelect;
@@ -124,6 +125,7 @@ export const tradesTable = pgTable("trades", {
   closedAt: timestamp("closed_at").notNull().defaultNow(),
   exitReason: text("exit_reason").notNull().default("manual"),
   confluenceScore: numeric("confluence_score", { precision: 6, scale: 2 }).notNull().default("0"),
+  txHash: text("tx_hash"),
 });
 
 export type Trade = typeof tradesTable.$inferSelect;
@@ -146,6 +148,8 @@ export const walletTable = pgTable("wallet", {
   address: text("address"),
   connected: boolean("connected").notNull().default(false),
   network: text("network").default("mainnet"),
+  encryptedMnemonic: text("encrypted_mnemonic"),
+  publicKey: text("public_key"),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

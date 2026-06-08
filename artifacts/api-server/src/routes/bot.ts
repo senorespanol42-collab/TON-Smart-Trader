@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, botStateTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "../lib/logger.js";
+import { startBotLoop, stopBotLoop } from "../services/botLoop.js";
 
 const router = Router();
 
@@ -13,9 +14,10 @@ async function getOrCreateBotState() {
 }
 
 function serializeStatus(row: Awaited<ReturnType<typeof getOrCreateBotState>>) {
-  const uptime = row.state === "running" && row.startedAt
-    ? Math.floor((Date.now() - new Date(row.startedAt).getTime()) / 1000)
-    : null;
+  const uptime =
+    row.state === "running" && row.startedAt
+      ? Math.floor((Date.now() - new Date(row.startedAt).getTime()) / 1000)
+      : null;
   return {
     state: row.state as "running" | "stopped" | "paused" | "error",
     uptime,
@@ -46,7 +48,9 @@ router.post("/bot/start", async (req, res) => {
       .set({ state: "running", startedAt: new Date(), errorMessage: null, updatedAt: new Date() })
       .where(eq(botStateTable.id, row.id))
       .returning();
-    logger.info("Bot started");
+
+    startBotLoop();
+    logger.info("Bot started — real trading loop active");
     res.json(serializeStatus(updated));
   } catch (err) {
     req.log.error({ err }, "Failed to start bot");
@@ -62,6 +66,8 @@ router.post("/bot/stop", async (req, res) => {
       .set({ state: "stopped", startedAt: null, updatedAt: new Date() })
       .where(eq(botStateTable.id, row.id))
       .returning();
+
+    stopBotLoop();
     logger.info("Bot stopped");
     res.json(serializeStatus(updated));
   } catch (err) {
@@ -78,6 +84,8 @@ router.post("/bot/pause", async (req, res) => {
       .set({ state: "paused", updatedAt: new Date() })
       .where(eq(botStateTable.id, row.id))
       .returning();
+
+    stopBotLoop();
     logger.info("Bot paused");
     res.json(serializeStatus(updated));
   } catch (err) {

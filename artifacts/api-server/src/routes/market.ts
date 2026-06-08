@@ -7,7 +7,7 @@ router.get("/market/pairs", (_req, res) => {
   res.json(STORM_PAIRS);
 });
 
-router.get("/market/price", (req, res) => {
+router.get("/market/price", async (req, res) => {
   const pair = req.query.pair as string;
   if (!pair) {
     res.status(400).json({ error: "pair is required" });
@@ -18,10 +18,16 @@ router.get("/market/price", (req, res) => {
     res.status(404).json({ error: "Unknown pair" });
     return;
   }
-  res.json(getCurrentPrice(pair));
+  try {
+    const data = await getCurrentPrice(pair);
+    res.json(data);
+  } catch (err) {
+    req.log.error({ err }, "Failed to fetch price");
+    res.status(502).json({ error: "Failed to fetch real-time price from exchange" });
+  }
 });
 
-router.get("/market/ohlcv", (req, res) => {
+router.get("/market/ohlcv", async (req, res) => {
   const pair = req.query.pair as string;
   const interval = (req.query.interval as string) || "1h";
   const limit = Math.min(Number(req.query.limit) || 200, 500);
@@ -35,8 +41,13 @@ router.get("/market/ohlcv", (req, res) => {
     res.status(400).json({ error: "Invalid interval" });
     return;
   }
-  const candles = generateOhlcv(pair, interval, limit);
-  res.json(candles);
+  try {
+    const candles = await generateOhlcv(pair, interval, limit);
+    res.json(candles);
+  } catch (err) {
+    req.log.error({ err }, "Failed to fetch OHLCV");
+    res.status(502).json({ error: "Failed to fetch candle data from exchange" });
+  }
 });
 
 export default router;

@@ -28,19 +28,12 @@ router.get("/trades", async (req, res) => {
     const limit = Math.min(Number(req.query.limit) || 50, 200);
     const pair = req.query.pair as string | undefined;
 
-    let query = db.select().from(tradesTable).orderBy(desc(tradesTable.closedAt)).limit(limit);
-    if (pair) {
-      query = db
-        .select()
-        .from(tradesTable)
-        .where(eq(tradesTable.pair, pair))
-        .orderBy(desc(tradesTable.closedAt))
-        .limit(limit);
-    }
+    const rows = pair
+      ? await db.select().from(tradesTable).where(eq(tradesTable.pair, pair)).orderBy(desc(tradesTable.closedAt)).limit(limit)
+      : await db.select().from(tradesTable).orderBy(desc(tradesTable.closedAt)).limit(limit);
 
-    const rows = await query;
     res.json(rows.map(serializeTrade));
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Internal server error" });
   }
 });
